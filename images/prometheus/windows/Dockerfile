@@ -24,10 +24,16 @@ COPY --from=installer /prometheus/consoles/           /etc/prometheus/
 
 EXPOSE     9090
 VOLUME     C:\prometheus
+USER ContainerAdministrator
 
-ENTRYPOINT ["C:\\bin\\prometheus.exe", `
-            "--storage.tsdb.path=/prometheus", `
-            "--web.console.libraries=/etc/prometheus/console_libraries", `
-            "--web.console.templates=/etc/prometheus/consoles" ]
+# Prometheus needs /etc/resolv.conf to lookup DNS targets
+CMD echo %DOCKER_HOST%  DOCKER_HOST >> /windows/system32/drivers/etc/hosts && `
+    C:\\set-gateway.cmd && `
+    C:\\bin\\prometheus.exe `
+    --storage.tsdb.path=/prometheus `
+    --web.console.libraries=/etc/prometheus/console_libraries `
+    --web.console.templates=/etc/prometheus/consoles `
+    --config.file=/etc/prometheus/prometheus.yml
 
-CMD ["--config.file=/etc/prometheus/prometheus.yml"]
+COPY set-gateway.cmd /
+COPY prometheus.yml /etc/prometheus/prometheus.yml
